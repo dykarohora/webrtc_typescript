@@ -25,7 +25,7 @@ function startPeerConnection(stream: MediaStream) {
     yourConnection.addStream(stream);
     // 通信相手がストリームを追加したときのハンドラ
     theirConnection.onaddstream = (event) => {
-        theirVideo.src = window.URL.createObjectURL(event.stream);
+        theirVideo!.src = window.URL.createObjectURL(event.stream);
     }
     // ICEを取得したときのイベントハンドラ
     yourConnection.onicecandidate = (event) => {

@@ -10,7 +10,11 @@
   "license": "ISC",
   "devDependencies": {
     "@types/webrtc": "0.0.21",
+    "@types/ws": "^3.0.2",
     "node-static": "^0.7.9",
-    "typescript": "^2.4.2"
+    "tslint": "^5.5.0",
+    "typescript": "^2.4.2",
+    "ws": "^3.1.0",
+    "wscat": "^2.0.1"
   }
 }

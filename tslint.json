@@ -1,0 +1,21 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+    "rules": {
+        "no-unused-expression": true,
+        "no-duplicate-variable": true,
+        "no-duplicate-key": true,
+        "no-unused-variable": true,
+        "curly": true,
+        "class-name": true,
+        "semicolon": ["always"],
+        "triple-equals": true,
+        "no-console": ["log"],
+        "object-literal-sort-keys": false
+    },
+
+    "rulesDirectory": []
+}
