@@ -1,13 +1,19 @@
 import ws = require("ws");
 
-interface ILoginRequest {
-    type: "login";
-    name: string;
-}
-
 interface ILoginResponse {
     type: "login";
     success: boolean;
+}
+
+interface IOfferResponse {
+    type: "offer";
+    offer: any;
+    name: string;
+}
+
+interface IAnswerResponse {
+    type: "answer";
+    answer: any;
 }
 
 const wsServer = new ws.Server({port: 8888});
@@ -35,6 +41,7 @@ wsServer.on("connection", (connection) => {
         }
 
         switch (data.type) {
+            // シグナリングサーバへのログイン
             case "login":
                 console.log("User logged in as ", data.name);
                 if (users[data.name]) {
@@ -55,16 +62,51 @@ wsServer.on("connection", (connection) => {
                     sendTo(connection, loginResponse);
                 }
                 break;
+            // SDPのオファー
+            case "offer":
+                console.log("Sending offer to ", data.name);
+                // 通話先のWebSocketコネクションを取得する
+                const offerConn = users[data.name];
+
+                if (offerConn !== null) {
+                    // 相手のユーザ名を自分のWebSocketに記録しておく
+                    connection.otherName = data.name;
+                    // 相手のコネクションに向かってofferメッセージを送信する
+                    const offerResponse: IOfferResponse = {
+                        type: "offer",
+                        offer: data.offer,
+                        name: connection.name,
+                    };
+                    sendTo(offerConn, offerResponse);
+                }
+                break;
+            //  SDPのアンサー
+            case "answer":
+                console.log("Sending answer to ", data.name);
+                // 通信先のWebSocketコネクションを取得する
+                const answerConn = users[data.name];
+
+                if (answerConn !== null) {
+                    // オファーを送ってきたユーザ名を自分のWebSocketに記録しておく
+                    connection.otherName = data.name;
+                    // 相手のコネクションに向かってanswerメッセージを送信する
+                    const answerResponse: IAnswerResponse = {
+                        type: "answer",
+                        answer: data.answer,
+                    };
+                    sendTo(answerConn, answerResponse);
+                }
+                break;
             default:
                 sendTo(connection, {
                     type: "error",
                     message: "Unrecognized command: " + data.type,
                 });
-
                 break;
         }
     });
 
+    // コネクションがCloseされるときはユーザ一覧から削除する
     connection.on("close", () => {
         if (connection.name) {
             delete users[connection.name];

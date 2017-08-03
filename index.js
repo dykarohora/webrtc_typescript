@@ -22,24 +22,59 @@ wsServer.on("connection", function (connection) {
             data = {};
         }
         switch (data.type) {
+            // シグナリングサーバへのログイン
             case "login":
                 console.log("User logged in as ", data.name);
                 if (users[data.name]) {
                     // すでにログイン済み
-                    sendTo(connection, {
+                    var loginResponse = {
                         type: "login",
                         success: false
-                    });
+                    };
+                    sendTo(connection, loginResponse);
                 }
                 else {
                     // 新規ログイン
                     users[data.name] = connection;
-                    // これどうするよ？
                     connection.name = data.name;
-                    sendTo(connection, {
+                    var loginResponse = {
                         type: "login",
                         success: true
-                    });
+                    };
+                    sendTo(connection, loginResponse);
+                }
+                break;
+            // SDPのオファー
+            case "offer":
+                console.log("Sending offer to ", data.name);
+                // 通話先のWebSocketコネクションを取得する
+                var offerConn = users[data.name];
+                if (offerConn !== null) {
+                    // 相手のユーザ名を自分のWebSocketに記録しておく
+                    connection.otherName = data.name;
+                    // 相手のコネクションに向かってofferメッセージを送信する
+                    var offerResponse = {
+                        type: "offer",
+                        offer: data.offer,
+                        name: connection.name
+                    };
+                    sendTo(offerConn, offerResponse);
+                }
+                break;
+            //  SDPのアンサー
+            case "answer":
+                console.log("Sending answer to ", data.name);
+                // 通信先のWebSocketコネクションを取得する
+                var answerConn = users[data.name];
+                if (answerConn !== null) {
+                    // オファーを送ってきたユーザ名を自分のWebSocketに記録しておく
+                    connection.otherName = data.name;
+                    // 相手のコネクションに向かってanswerメッセージを送信する
+                    var answerResponse = {
+                        type: "answer",
+                        answer: data.answer
+                    };
+                    sendTo(answerConn, answerResponse);
                 }
                 break;
             default:
@@ -50,6 +85,7 @@ wsServer.on("connection", function (connection) {
                 break;
         }
     });
+    // コネクションがCloseされるときはユーザ一覧から削除する
     connection.on("close", function () {
         if (connection.name) {
             delete users[connection.name];
