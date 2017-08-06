@@ -4,39 +4,54 @@
         <meta charset="utf-8" />
         <title>Learning WebRTC</title>
         <style>
-body {
-background-color: #3D6DF2;
-margin-top: 15px;
-}
-video {
-background: black;
-border: 1px solid gray;
-}
-#container {
-position: relative;
-display: block;
-margin: 0 auto;
-width: 500px;
-height: 500px;
-}
-#yours {
-width: 150px;
-height: 150px;
-position: absolute;
-top: 15px;
-right: 15px;
-}
-#theirs {
-width: 500px;
-height: 500px;
-}
-</style>
+            body {
+            background-color: #3D6DF2;
+            margin-top: 15px;
+            }
+            video {
+            background: black;
+            border: 1px solid gray;
+            }
+            .page {
+                position: relative;
+                display: block;
+                margin: 0 auto;
+                width: 500px;
+                height: 500px;
+            }
+            #container {
+            position: relative;
+            display: block;
+            margin: 0 auto;
+            width: 500px;
+            height: 500px;
+            }
+            #yours {
+            width: 150px;
+            height: 150px;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            }
+            #theirs {
+            width: 500px;
+            height: 500px;
+            }
+        </style>
     </head>
     <body>
-        <div id="container">
+        <div id="login-page">
+            <h2>Login As</h2>
+            <input type="text" id="username" />
+            <button id="login">Login</button>
+        </div>
+
+        <div id="call-page" class="page">
             <video id="yours" autoplay></video>
             <video id="theirs" autoplay></video>
-        </div>
-        <script src = "main.js"></script>
+            <input type="text" id="their-username" />
+            <button id="call">Call</button>
+            <button id="hang-up">Hang Up</button>
+        <script src = "client.js"></script>
     </body>
 </html>

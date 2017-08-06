@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/webrtc": "0.0.21",
     "@types/ws": "^3.0.2",
     "node-static": "^0.7.9",
     "tslint": "^5.5.0",

@@ -16,15 +16,18 @@ interface IAnswerResponse {
     answer: any;
 }
 
+interface IIceResponse {
+    type: "candidate";
+    candidate: any;
+}
+
 const wsServer = new ws.Server({port: 8888});
 // 現在ログインしているユーザのコネクション一覧
-let users: {[key: string]: ws} = {};
+const users: {[key: string]: ws} = {};
 
 function sendTo(conn: ws, message: any) {
     conn.send(JSON.stringify(message));
 }
-
-// TODO: TypeGuard使ってJSONをオブジェクトにキャストしたい。
 
 // クライアントから接続が来たときのイベントハンドラ
 wsServer.on("connection", (connection) => {
@@ -97,6 +100,29 @@ wsServer.on("connection", (connection) => {
                     sendTo(answerConn, answerResponse);
                 }
                 break;
+            // ICE
+            case "candidate":
+                console.log("Sending candidate to ", data.name);
+                const iceConn = users[data.name];
+
+                if (iceConn !== null) {
+                    // a
+                    const iceResponse: IIceResponse = {
+                        type: "candidate",
+                        candidate: data.candidate,
+                    };
+                    sendTo(iceConn, iceResponse);
+                }
+                break;
+            // 通話を切る
+            case "leave":
+                console.log("Disconnecting user from ", data.name);
+                const hangConn = users[data.name];
+                hangConn.otherName = null;
+                if (hangConn !== null) {
+                    sendTo(hangConn, {type: "leave"});
+                }
+                break;
             default:
                 sendTo(connection, {
                     type: "error",
@@ -110,9 +136,16 @@ wsServer.on("connection", (connection) => {
     connection.on("close", () => {
         if (connection.name) {
             delete users[connection.name];
-            console.log("disconnectd: " + connection.name);
+            if (connection.otherName) {
+                console.log("Disconnecting user from ", connection.otherName);
+                const conn = users[connection.otherName];
+                conn.otherName = null;
+                if (conn !== null) {
+                    sendTo(conn, {type: "leave"});
+                }
+            }
         }
     });
     // 接続してきたクライアントにメッセージを返す
-    connection.send("Hello World");
+    // connection.send("Hello World");
 });

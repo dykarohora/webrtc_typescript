@@ -7,7 +7,6 @@ var users = {};
 function sendTo(conn, message) {
     conn.send(JSON.stringify(message));
 }
-// TODO: TypeGuard使ってJSONをオブジェクトにキャストしたい。
 // クライアントから接続が来たときのイベントハンドラ
 wsServer.on("connection", function (connection) {
     console.log("User Connected");
@@ -77,6 +76,28 @@ wsServer.on("connection", function (connection) {
                     sendTo(answerConn, answerResponse);
                 }
                 break;
+            // ICE
+            case "candidate":
+                console.log("Sending candidate to ", data.name);
+                var iceConn = users[data.name];
+                if (iceConn !== null) {
+                    // a
+                    var iceResponse = {
+                        type: "candidate",
+                        candidate: data.candidate
+                    };
+                    sendTo(iceConn, iceResponse);
+                }
+                break;
+            // 通話を切る
+            case "leave":
+                console.log("Disconnecting user from ", data.name);
+                var hangConn = users[data.name];
+                hangConn.otherName = null;
+                if (hangConn !== null) {
+                    sendTo(hangConn, { type: "leave" });
+                }
+                break;
             default:
                 sendTo(connection, {
                     type: "error",
@@ -89,9 +110,16 @@ wsServer.on("connection", function (connection) {
     connection.on("close", function () {
         if (connection.name) {
             delete users[connection.name];
-            console.log("disconnectd: " + connection.name);
+            if (connection.otherName) {
+                console.log("Disconnecting user from ", connection.otherName);
+                var conn = users[connection.otherName];
+                conn.otherName = null;
+                if (conn !== null) {
+                    sendTo(conn, { type: "leave" });
+                }
+            }
         }
     });
     // 接続してきたクライアントにメッセージを返す
-    connection.send("Hello World");
+    // connection.send("Hello World");
 });
